@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper-deployment-1
+  namespace: data-stream
+spec: 
+  serviceName: zoo1
+  replicas: 1
+  selector: 
+    matchLabels: 
+      app: zookeeper1
+  template:
+    metadata: 
+      labels: 
+        app: zookeeper1
+    spec: 
+      nodeSelector: 
+        nodeType: memory-local-docker
+      containers: 
+      - name: zoo1
+        image: digitalwonderland/zookeeper
+        ports:
+        - containerPort: 2181
+        env: 
+        - name: ZOOKEEPER_ID
+          value: "1"
+        - name: ZOOKEEPER_SERVER_1
+          value: zoo1
+        volumeMounts: 
+        - name: local-volume
+          mountPath: "/var/lib/zookeeper"
+      volumes:
+        - name: local-volume
+          hostPath:
+            path: /Users/xiaoxiaosu/Documents/Codes/GitHub/K8S/mountedVolume/zookeeper
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: zoo1
+  namespace: data-stream
+  labels: 
+    app: zookeeper1
+spec: 
+  ports:
+  - name: client
+    port: 2181
+    protocol: TCP
+  - name: follower
+    port: 2888
+    protocol: TCP
+  - name: leader
+    port: 3888
+    protocol: TCP
+  selector: 
+    app: zookeeper1
